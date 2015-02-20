@@ -23,6 +23,11 @@ module Unicorn::WorkerKiller
     sig = :KILL if @@kill_attempts > configuration.max_term
 
     logger.warn "#{self} send SIG#{sig} (pid: #{worker_pid}) alive: #{alive_sec} sec (trial #{@@kill_attempts})"
+
+    if server_name = `cat /home/ubuntu/.server_name`.strip and server_name.present?
+      STATSD.count("unicorn.#{server_name}.worker.killed")
+    end
+
     Process.kill sig, worker_pid
   end
 
